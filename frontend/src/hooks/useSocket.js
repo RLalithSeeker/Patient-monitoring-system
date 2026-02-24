@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -13,6 +13,7 @@ export function useSocket() {
         Status: 'Normal',
         timestamp: null,
     });
+    const [prevVitals, setPrevVitals] = useState(null);
     const [vitalHistory, setVitalHistory] = useState([]);
 
     // Demo: Pre-populated critical alerts for demonstration
@@ -38,7 +39,10 @@ export function useSocket() {
         });
 
         socketInstance.on('vital_update', (data) => {
-            setVitals(data);
+            setVitals((prev) => {
+                setPrevVitals(prev);
+                return data;
+            });
 
             // Add to history (keep last 60 data points for graph)
             setVitalHistory((prev) => {
@@ -70,6 +74,7 @@ export function useSocket() {
         socket,
         isConnected,
         vitals,
+        prevVitals,
         vitalHistory,
         alerts,
         clearAlerts,
